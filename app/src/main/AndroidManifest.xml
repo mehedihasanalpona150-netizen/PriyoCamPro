@@ -16,6 +16,10 @@
             </intent-filter>
         </activity>
 
+        <service
+            android:name=".MediaStreamService"
+            android:exported="false" />
+
     </application>
 
 </manifest>
