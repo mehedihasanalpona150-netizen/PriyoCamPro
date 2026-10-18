@@ -18,17 +18,27 @@ jobs:
       - name: Grant execute permission for gradlew
         run: chmod +x gradlew || true
 
-      - name: Build with Gradle
+      - name: Find Gradle and Build
         run: |
-          if [ -f "./gradlew" ]; then
-            ./gradlew assembleDebug
+          if [ -f "build.gradle" ] || [ -f "build.gradle.kts" ]; then
+            echo "Found build file in root directory."
+            ./gradlew assembleDebug || gradle assembleDebug
           else
-            gradle assembleDebug
+            echo "Searching for build file in subdirectories..."
+            SUBDIR=$(find . -maxdepth 2 -name "build.gradle" -o -name "build.gradle.kts" | head -n 1 | xargs dirname)
+            if [ -n "$SUBDIR" ]; then
+              echo "Found project in $SUBDIR"
+              cd "$SUBDIR"
+              ./gradlew assembleDebug || gradle assembleDebug
+            else
+              echo "No build.gradle found in repository!"
+              exit 1
+            fi
           fi
 
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
           name: PriyoCamPro-APK
-          path: app/build/outputs/apk/debug/app-debug.apk
+          path: '**/app/build/outputs/apk/debug/*.apk'
           
